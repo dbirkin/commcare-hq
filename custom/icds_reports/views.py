@@ -290,6 +290,21 @@ class ProgramSummaryView(BaseReportView):
         config.update(get_location_filter(location, domain))
 
         data = {}
+
+        from custom.icds_reports.models import AggregateSQLProfile
+        sync_latest_ds_update = AggregateSQLProfile.objects.filter(name = 'aggregation_time_normal')\
+            .exclude(latest_aggregration=None).order_by('-latest_aggregration')[0]
+
+        async_latest_ds_update = AggregateSQLProfile.objects.filter(name = 'aggregation_time_async')\
+            .exclude(latest_aggregration=None).order_by('-latest_aggregration')[0]
+
+        time = None
+        if(sync_latest_ds_update and async_latest_ds_update):
+            time = min([sync_latest_ds_update, async_latest_ds_update])
+        else:
+            time = sync_latest_ds_update or async_latest_ds_update
+        data.update({"time": time.__str__()})
+
         if step == 'maternal_child':
             data = get_maternal_child_data(
                 domain, config, include_test, icds_pre_release_features(self.request.couch_user)

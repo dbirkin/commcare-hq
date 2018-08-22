@@ -14,7 +14,15 @@ class AggregateSQLProfile(models.Model):
     name = models.TextField()
     date = models.DateField(auto_now=True)
     duration = models.PositiveIntegerField()
+    latest_aggregration = models.DateField(null=True)
 
+    @classmethod
+    def save_aggregation_time(cls, name, latest_aggrestion):
+        cls.objects.create(
+            name=name,
+            duration=0,
+            latest_aggregration=latest_aggrestion
+        )
 
 class UcrTableNameMapping(models.Model):
     table_type = models.TextField(primary_key=True)

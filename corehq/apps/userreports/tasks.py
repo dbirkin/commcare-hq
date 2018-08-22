@@ -451,6 +451,12 @@ def _build_async_indicators(indicator_doc_ids):
             ]
         )
 
+        processed_indicators = sorted(list(processed_indicators),key=lambda x: x.date_created.date())
+        latest_created_date = processed_indicators[len(processed_indicators) - 1].date_created.date()
+
+        from custom.icds_reports.models import AggregateSQLProfile
+        AggregateSQLProfile.save_aggregation_time("aggregation_time_async", latest_created_date)
+
 
 @task(queue=UCR_INDICATOR_CELERY_QUEUE, ignore_result=True, acks_late=True)
 def save_document(doc_ids):

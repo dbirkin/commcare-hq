@@ -237,6 +237,9 @@ def move_ucr_data_into_aggregation_tables(date=None, intervals=2):
             email_dashboad_team.si(aggregation_date=date.strftime('%Y-%m-%d'))
         ).delay()
 
+        monthly_dates.sort()
+        from custom.icds_reports.models import AggregateSQLProfile
+        AggregateSQLProfile.save_aggregation_time("aggregation_time_normal", monthly_dates[len(monthly_dates)-1])
 
 def create_views(cursor):
     try:
