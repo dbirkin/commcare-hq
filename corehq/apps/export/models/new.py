@@ -26,6 +26,7 @@ from corehq.apps.userreports.app_manager.data_source_meta import get_form_indica
 from corehq.blobs import CODES, get_blob_db
 from corehq.blobs.models import BlobMeta
 from corehq.blobs.exceptions import NotFound
+from corehq.blobs.mixin import BlobMixin
 from corehq.blobs.util import random_url_id
 from corehq.sql_db.util import get_db_alias_for_partitioned_doc
 from corehq.util.global_request import get_request_domain
@@ -54,7 +55,6 @@ from corehq.apps.app_manager.models import (
 from corehq.apps.domain.models import Domain
 from corehq.apps.products.models import SQLProduct
 from corehq.apps.reports.display import xmlns_to_name
-from corehq.blobs.mixin import BlobMixin
 from corehq.form_processor.interfaces.dbaccessors import LedgerAccessors
 from corehq.util.view_utils import absolute_reverse
 from couchexport.models import Format
@@ -675,6 +675,8 @@ class ExportInstance(BlobMixin, Document):
 
     sharing = StringProperty(default=SharingOption.EDIT_AND_EXPORT, choices=SharingOption.CHOICES)
     owner_id = StringProperty(default=None)
+
+    _blobdb_type_code = CODES.data_export
 
     class Meta(object):
         app_label = 'export'
