@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import threading
+from io import BytesIO
 
+from botocore.handlers import calculate_md5
 from django.conf import settings
 
 from corehq.toggles import TF_DOES_NOT_USE_SQLITE_BACKEND
@@ -73,3 +75,9 @@ def is_commcarecase(obj):
     from casexml.apps.case.models import CommCareCase
     from corehq.form_processor.models import CommCareCaseSQL
     return isinstance(obj, (CommCareCase, CommCareCaseSQL))
+
+
+def get_content_md5(content):
+    params = {"body": BytesIO(content), "headers": {}}
+    calculate_md5(params)
+    return params["headers"]["Content-MD5"]

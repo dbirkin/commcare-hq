@@ -114,6 +114,46 @@ class TestMetaDB(TestCase):
         with self.assertRaises(BlobMeta.DoesNotExist):
             self.db.metadb.get(parent_id=xid, type_code=CODES.form_xml, name=xid)
 
+    def create_blobs(self):
+        def put(parent_id, code):
+            meta = new_meta(parent_id=parent_id, type_code=code)
+            return self.db.put(BytesIO(b"cx"), meta=meta)
+
+        class namespace(object):
+            p1 = uuid4().hex
+            p2 = uuid4().hex
+            p3 = uuid4().hex
+            m1 = put(p1, CODES.form_xml)
+            m2 = put(p2, CODES.multimedia)
+            m3 = put(p3, CODES.multimedia)
+
+        return namespace
+
+    def test_get_for_parent(self):
+        ns = self.create_blobs()
+        items = self.db.metadb.get_for_parent(ns.p1)
+        self.assertEqual([x.key for x in items], [ns.m1.key])
+
+    def test_get_for_parent_with_type_code(self):
+        m1 = self.db.put(BytesIO(b"fx"), meta=new_meta(type_code=CODES.form_xml))
+        m2 = self.db.put(BytesIO(b"cx"), meta=new_meta(type_code=CODES.multimedia))
+        self.assertEqual(m1.parent_id, m2.parent_id)
+        items = self.db.metadb.get_for_parent(m1.parent_id, CODES.form_xml)
+        self.assertEqual([x.key for x in items], [m1.key])
+
+    def test_get_for_parents(self):
+        ns = self.create_blobs()
+        items = self.db.metadb.get_for_parents([ns.p1, ns.p2])
+        self.assertEqual({x.key for x in items}, {ns.m1.key, ns.m2.key})
+
+    def test_get_for_parents_with_type_code(self):
+        ns = self.create_blobs()
+        items = self.db.metadb.get_for_parents(
+            [ns.p1, ns.p2, ns.p3],
+            CODES.multimedia,
+        )
+        self.assertEqual({x.key for x in items}, {ns.m2.key, ns.m3.key})
+
 
 @only_run_with_partitioned_database
 class TestPartitionedMetaDB(TestMetaDB):
