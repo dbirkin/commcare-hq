@@ -453,11 +453,8 @@ def _build_async_indicators(indicator_doc_ids):
         )
 
         if processed_indicators:
-            processed_indicators = sorted(list(processed_indicators),key=lambda x: x.date_created.date())
-            latest_created_date = processed_indicators[-1].date_created.date()
-
+            latest_created_date = max(list(processed_indicators),key=lambda x: x.date_created.date()).date_created.date()
             AggregateSQLProfile.save_aggregation_time("aggregation_time_async", latest_created_date)
-            AggregateSQLProfile.get_last_indicator_acknowledged()
 
 
 @task(queue=UCR_INDICATOR_CELERY_QUEUE, ignore_result=True, acks_late=True)

@@ -25,7 +25,6 @@ class AggregateSQLProfile(models.Model):
             latest_aggregration=latest_aggrestion
         )
 
-
     @classmethod
     def get_last_indicator_acknowledged(cls):
         sync_latest_ds_update = cls.objects.filter(name = 'aggregation_time_normal')\
@@ -41,6 +40,7 @@ class AggregateSQLProfile(models.Model):
             return min([sync_latest_ds_update, async_latest_ds_update])
 
         return sync_latest_ds_update or async_latest_ds_update
+
 
 class UcrTableNameMapping(models.Model):
     table_type = models.TextField(primary_key=True)
