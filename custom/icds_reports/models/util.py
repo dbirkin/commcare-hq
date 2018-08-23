@@ -5,6 +5,7 @@ import architect
 import uuid
 
 from django.db import models
+from django.db.models import Max
 from django.contrib.postgres.fields import ArrayField, JSONField
 
 from dimagi.utils.web import get_ip
@@ -23,6 +24,23 @@ class AggregateSQLProfile(models.Model):
             duration=0,
             latest_aggregration=latest_aggrestion
         )
+
+
+    @classmethod
+    def get_last_indicator_acknowledged(cls):
+        sync_latest_ds_update = cls.objects.filter(name = 'aggregation_time_normal')\
+            .exclude(latest_aggregration__isnull=True).aggregate(Max('latest_aggregration'))
+
+        async_latest_ds_update = cls.objects.filter(name = 'aggregation_time_async')\
+            .exclude(latest_aggregration__isnull=True).aggregate(Max('latest_aggregration'))
+
+        sync_latest_ds_update = sync_latest_ds_update['latest_aggregration__max']
+        async_latest_ds_update = async_latest_ds_update['latest_aggregration__max']
+
+        if(sync_latest_ds_update and async_latest_ds_update):
+            return min([sync_latest_ds_update, async_latest_ds_update])
+
+        return sync_latest_ds_update or async_latest_ds_update
 
 class UcrTableNameMapping(models.Model):
     table_type = models.TextField(primary_key=True)

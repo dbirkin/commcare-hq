@@ -46,6 +46,7 @@ from corehq.util.decorators import serial_task
 from corehq.util.quickcache import quickcache
 from corehq.util.timer import TimingContext
 from corehq.util.view_utils import reverse
+from custom.icds_reports.models import AggregateSQLProfile
 from custom.icds_reports.ucr.expressions import icds_get_related_docs_ids
 from dimagi.utils.chunked import chunked
 from dimagi.utils.couch import CriticalSection
@@ -451,11 +452,12 @@ def _build_async_indicators(indicator_doc_ids):
             ]
         )
 
-        processed_indicators = sorted(list(processed_indicators),key=lambda x: x.date_created.date())
-        latest_created_date = processed_indicators[len(processed_indicators) - 1].date_created.date()
+        if processed_indicators:
+            processed_indicators = sorted(list(processed_indicators),key=lambda x: x.date_created.date())
+            latest_created_date = processed_indicators[-1].date_created.date()
 
-        from custom.icds_reports.models import AggregateSQLProfile
-        AggregateSQLProfile.save_aggregation_time("aggregation_time_async", latest_created_date)
+            AggregateSQLProfile.save_aggregation_time("aggregation_time_async", latest_created_date)
+            AggregateSQLProfile.get_last_indicator_acknowledged()
 
 
 @task(queue=UCR_INDICATOR_CELERY_QUEUE, ignore_result=True, acks_late=True)

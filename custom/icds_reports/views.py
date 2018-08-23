@@ -50,8 +50,8 @@ from custom.icds_reports.const import LocationTypes, BHD_ROLE, ICDS_SUPPORT_EMAI
     PREGNANT_WOMEN_EXPORT, DEMOGRAPHICS_EXPORT, SYSTEM_USAGE_EXPORT, AWC_INFRASTRUCTURE_EXPORT,\
     BENEFICIARY_LIST_EXPORT, ISSNIP_MONTHLY_REGISTER_PDF
 from custom.icds_reports.forms import AppTranslationsForm
+from custom.icds_reports.models import AggregateSQLProfile
 from custom.icds_reports.models.helper import IcdsFile
-
 from custom.icds_reports.reports.adhaar import get_adhaar_data_chart, get_adhaar_data_map, get_adhaar_sector_data
 from custom.icds_reports.reports.adolescent_girls import get_adolescent_girls_data_map, \
     get_adolescent_girls_sector_data, get_adolescent_girls_data_chart
@@ -291,20 +291,6 @@ class ProgramSummaryView(BaseReportView):
 
         data = {}
 
-        from custom.icds_reports.models import AggregateSQLProfile
-        sync_latest_ds_update = AggregateSQLProfile.objects.filter(name = 'aggregation_time_normal')\
-            .exclude(latest_aggregration=None).order_by('-latest_aggregration')[0]
-
-        async_latest_ds_update = AggregateSQLProfile.objects.filter(name = 'aggregation_time_async')\
-            .exclude(latest_aggregration=None).order_by('-latest_aggregration')[0]
-
-        time = None
-        if(sync_latest_ds_update and async_latest_ds_update):
-            time = min([sync_latest_ds_update, async_latest_ds_update])
-        else:
-            time = sync_latest_ds_update or async_latest_ds_update
-        data.update({"time": time.__str__()})
-
         if step == 'maternal_child':
             data = get_maternal_child_data(
                 domain, config, include_test, icds_pre_release_features(self.request.couch_user)
@@ -326,6 +312,10 @@ class ProgramSummaryView(BaseReportView):
             )
         elif step == 'awc_infrastructure':
             data = get_awc_infrastructure_data(domain, config, include_test)
+
+        last_indicator_time = AggregateSQLProfile.get_last_indicator_acknowledged()
+        data.update({"time": last_indicator_time.__str__()})
+
         return JsonResponse(data=data)
 
 
