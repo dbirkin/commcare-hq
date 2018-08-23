@@ -15,28 +15,28 @@ class AggregateSQLProfile(models.Model):
     name = models.TextField()
     date = models.DateField(auto_now=True)
     duration = models.PositiveIntegerField()
-    latest_aggregration = models.DateField(null=True)
+    latest_aggregation = models.DateField(null=True)
 
     @classmethod
-    def save_aggregation_time(cls, name, latest_aggrestion):
+    def save_aggregation_time(cls, name, latest_aggregation):
         cls.objects.create(
             name=name,
             duration=0,
-            latest_aggregration=latest_aggrestion
+            latest_aggregation=latest_aggregation
         )
 
     @classmethod
     def get_last_indicator_acknowledged(cls):
-        sync_latest_ds_update = cls.objects.filter(name = 'aggregation_time_normal')\
-            .exclude(latest_aggregration__isnull=True).aggregate(Max('latest_aggregration'))
+        sync_latest_ds_update = cls.objects.filter(name='aggregation_time_normal')\
+            .exclude(latest_aggregation__isnull=True).aggregate(Max('latest_aggregation'))
 
-        async_latest_ds_update = cls.objects.filter(name = 'aggregation_time_async')\
-            .exclude(latest_aggregration__isnull=True).aggregate(Max('latest_aggregration'))
+        async_latest_ds_update = cls.objects.filter(name='aggregation_time_async')\
+            .exclude(latest_aggregation__isnull=True).aggregate(Max('latest_aggregation'))
 
-        sync_latest_ds_update = sync_latest_ds_update['latest_aggregration__max']
-        async_latest_ds_update = async_latest_ds_update['latest_aggregration__max']
+        sync_latest_ds_update = sync_latest_ds_update['latest_aggregation__max']
+        async_latest_ds_update = async_latest_ds_update['latest_aggregation__max']
 
-        if(sync_latest_ds_update and async_latest_ds_update):
+        if sync_latest_ds_update and async_latest_ds_update:
             return min([sync_latest_ds_update, async_latest_ds_update])
 
         return sync_latest_ds_update or async_latest_ds_update

@@ -453,7 +453,8 @@ def _build_async_indicators(indicator_doc_ids):
         )
 
         if processed_indicators:
-            latest_created_date = max(list(processed_indicators),key=lambda x: x.date_created.date()).date_created.date()
+            latest_created_date = max(list(processed_indicators), key=lambda x: x.date_created.date())\
+                .date_created.date()
             AggregateSQLProfile.save_aggregation_time("aggregation_time_async", latest_created_date)
 
 
